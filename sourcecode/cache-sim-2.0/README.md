@@ -46,4 +46,24 @@ expected output
 Done!
 
 
+Workload Generator
+***************
+Arguments:
+-seq < length = % of ins * repeat ,:... >
+-ins < total # of instruction >
+-load < approx % of load instruction >
+Example : ./workgen -seq 10:20*2:10:20*2 -ins 100000 -load 20
+Address trace will have 10000 instructions then 20000 instructions in a loop 2 times. Again 10000 instructions then 20000 instructions in a loop 2 times. And load instructions approx 20 %.
+
+
+Cache Simulator
+***************
+Arguments:
+-cap < capacity in kbytes >
+-block < size of block in (8,16,32,64) >
+-assoc < associativity in (1,2,4,8) >
+-out < standard output to file >
+Example : ./cache-sim -cap 2 -block 32 -assoc 4 -out output tracefile
+
+
 

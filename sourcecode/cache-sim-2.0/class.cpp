@@ -69,7 +69,6 @@ address Address::rentAddress(unsigned int add_tag,unsigned int add_index,unsigne
 /*putting byte offset*/
    // address = address<<2;
    // address = address + byte_offset;
-
     return address;
 }
 
@@ -105,7 +104,6 @@ Block Memory::load(address address){
     for(int i=0;i<blocksize;i++){
         B.Word[i] = Word[leftalign+i];
     }
-
     return B;
 }
 
@@ -136,20 +134,20 @@ Cache::Cache() {
 /* ARGUMENTED CACHE CONSTRUCTOR
 -----------------------------------------------*/
 Cache::Cache(int cap,int blocksize,int associativity) {
-    if(!(cap==4 || cap==8 || cap==16 ||cap==32 || cap==64)){
-        printf("error: capacity should be integer in <4,8,16,32,64>\n");
+    if(!(cap==2 || cap==4 || cap==8 || cap==16 ||cap==32 || cap==64)){
+        printf("error: capacity should be integer in <2,4,8,16,32,64>\n");
 	exit(0);
     }else
 	Capacity = cap*K;
 
-    if(!(blocksize==4 || blocksize==8 || blocksize==16 || blocksize==32 || blocksize==64 || blocksize==128 || blocksize==256 || blocksize==512)){
-        printf("error: blocksize should be integer in <4,8,16,32,64,128,256,512>\n");
+    if(!( blocksize==8 || blocksize==16 || blocksize==32 || blocksize==64 )){
+        printf("error: blocksize should be integer in <8,16,32,64>\n");
 	exit(0);
     }else
 	Blocksize = blocksize;
 
-    if(!(associativity==1 || associativity==2 || associativity==4 || associativity==8 || associativity==16)){
-	printf("error: set-associativity should be integer in <1,2,4,8,16>\n");
+    if(!(associativity==1 || associativity==2 || associativity==4 || associativity==8)){
+	printf("error: set-associativity should be integer in <1,2,4,8>\n");
 	exit(0);
     }else
 	Associativity = associativity;
@@ -185,7 +183,7 @@ bool Cache::write(word data,address address){
             if(T[PC.index][i].tag == PC.tag){                       //looking for tag
                     if(T[PC.index][i].valid == true){                //is block is valid
                             T[PC.index][i].Word[PC.block_offset] = data;
-                                            Hit=true;
+                            Hit=true;
                     }else{      //fetching from memory
                         T[PC.index][i]= Main.load(address);
                         T[PC.index][i].Word[PC.block_offset] = data;

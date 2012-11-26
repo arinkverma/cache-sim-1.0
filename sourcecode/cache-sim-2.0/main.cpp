@@ -8,17 +8,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <sstream>
+#include <iostream>
 #include "utility.h"
 #include "typedef.h"
 #include "class.h"
 using namespace std;
 
 
+char *tocharArray(string A){
+        //std::string s
+char *a=new char[A.size()+1];
+a[A.size()]=0;
+memcpy(a,A.c_str(),A.size());
+return a;
+}
+
 /* DEFAULT BASE VALUES
 ----------------------------------------------- */
-int capacity = 8;		// capacity <kbytes>  4,8,16,32,64
-int blocksize = 16;		// blocksize <bytes>  4,8,16,32,64,128,256,512
-int associativity = 4;		// assciativity <set> 1,2,4,8,16
+int capacity = 2;		// capacity <kbytes>  2,4,8,16,32,64
+int blocksize = 8;		// blocksize <bytes>  8,16,32,64
+int associativity = 8;		// assciativity <set> 1,2,4,8
 
 
 
@@ -26,30 +36,58 @@ int associativity = 4;		// assciativity <set> 1,2,4,8,16
 ----------------------------------------------- */
 int main(int argc, char *argv[]){
 /*Printing command-line*/
-    printf("Command-line given:\n");    
+    printf("Command-line given : ");  
+    stringstream ss;
+ 
+
+    
     for(char **A = argv;*A != NULL;A++){
         printf("%s ",*A);
+        ss << *A;
+        ss << " ";
     }
     printf("\n");
 
+   
 
 /*Setting up new base values from commandline   */
-	while(--argc > 1 && (*++argv)[0] == '-'){
-		switch(decode(argv[0])){
+   string s2;
+   ss>>s2;  
+   char *inputfile;
+      
+	while(ss>>s2){
+            char *val;
+            char *arg;
+            arg = tocharArray(s2);
+            int c = decode(arg);
+            
+            if(!(ss>>s2)){
+                if(c==-1){
+                inputfile = arg;
+                break;
+                }
+            }else{
+                    val = tocharArray(s2);
+            }
+            
+		switch(c){                    
 			case 0:
-				capacity=atoi(*++argv);
-				argc--;
+                                
+                               
+				capacity=atoi(val);
 				break;
 			case 1:
-				blocksize=atoi(*++argv);
-				argc--;
+				blocksize=atoi(val);
 				break;
 			case 2:
-				associativity= atoi(*++argv);
-				argc--;
+				associativity= atoi(val);
 				break;
+                        case 3:
+                                freopen (val,"w",stdout);
+                                break;
+                        
 			default:
-				printf("error: unrecognized command line option \"%s\"\n",argv[0]);
+				printf("error: unrecognized command line option \"%s\"\n",arg);
 				exit(0);
 		}
 	}
@@ -60,14 +98,14 @@ int main(int argc, char *argv[]){
 
 /* Taking input */
 	if(argc>=1){            
-                int miss_read=0,miss_write=0,total=0;
+                int miss_read=0,miss_write=0,total=0,load=0,store=0;
                 double rate=0,rate_read=0,rate_write=0;
 
                 char opt,add[16],dat[16];
 
 /*Reading from file*/
     		fstream fin;
-                fin.open(*++argv);                  //opening file from given location
+                fin.open(inputfile);                  //opening file from given location
 		address address;
                 word data=0;
 
@@ -76,13 +114,16 @@ int main(int argc, char *argv[]){
                     fin>>opt;
                     
                     if(opt=='0'){
+                        //store
                         fin>>add;
                         if(fin.eof())break;
                         address = hexInt(add);
                         if(L1.read(data,address)==false){
                             miss_read++;
                         }
+                        store++;
                     }else if(opt=='1'){
+                        //load
                         fin>>add>>dat;
                         if(fin.eof())break;
                         address = hexInt(add);
@@ -91,24 +132,35 @@ int main(int argc, char *argv[]){
                         if(hit==false){
                             miss_write++;
                         }
+                        load++;
                     }
                     
                     total++;
                 }
                 fin.close();				//file close
 
-                printf("STATISTICS:\n");
-                printf("\tMisses:\t\t%d\t\t%d\t\t%d\n",miss_read+miss_write,miss_read,miss_write );
+                printf("****STATISTICS*****\n");
                 
                 rate = (double)(miss_read+miss_write)*100/total;
                 rate_write = (double)(miss_write)*100/total;
                 rate_read = (double)(miss_read)*100/total;
-                printf("\tMiss Rate:\t%f\t%f\t%f\n",rate,rate_read,rate_write );
-                printf("\tNumber of Dirty Blocks Evicted From the Cache:\n");
-                printf("CACHE CONTENTS:\n");
-                printf(" Set\twords:\n");
-
                 int sets = capacity*1024/(blocksize*associativity);
+                
+                printf("cache_sets\t\t: %d\n",sets);
+                printf("cache_blocksize\t\t: %d\n",blocksize);
+                printf("cache_associativity\t: %d\n",associativity);
+                
+                printf("inst_num\t\t: %d\n",total);                
+                printf("inst_load\t\t: %d\n",load);
+                printf("inst_store\t\t:  %d\n",store);
+                printf("miss_num\t\t: %d\n",miss_read+miss_write ); 
+                printf("miss_write\t\t: %d\n",miss_write ); 
+                printf("miss_read\t\t: %d\n",miss_read );                                
+                printf("miss_rate\t\t: %f\n",rate);
+          
+              /*  printf("CACHE CONTENTS:\n");
+                printf(" Set\twords:\n");
+               * int sets = capacity*1024/(blocksize*associativity);
                 for(int i=0;i<sets;i++){
                     printf("%5d |",i);
                     
@@ -124,7 +176,7 @@ int main(int argc, char *argv[]){
                         
                     }
                     printf("\n");
-                }
+                }*/
                 
                    printf("\n");
 
